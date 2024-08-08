@@ -9,11 +9,13 @@ const router = express.Router();
 app.use(router,
     express.static('./static'),
     express.json(),
-    express.urlencoded({ extended: true })
+    express.urlencoded({ 
+        extended: true 
+    })
 );
 
 // Endpoint for homepage
-router.get('^/$|/eShop', (req, res) => {
+router.get('^/$|/challengeMe', (req, res) => {
     res.status(200).sendFile(path.resolve('./static/html/index.html'));
 });
 
@@ -21,7 +23,7 @@ router.get('^/$|/eShop', (req, res) => {
 router.get('/users', (req, res) => {
     try {
         const strQry = `
-        SELECT firstName, lastName, age, emailAdd
+        SELECT userName, userSurname, userAge, userEmail
         FROM Users;
         `;
         db.query(strQry, (err, results) => {
@@ -39,19 +41,19 @@ router.get('/users', (req, res) => {
     }
 });
 
-// Endpoint for a single user
+// Endpoint for user
 router.get('/user/:id', (req, res) => {
     try {
         const strQry = `
-        SELECT userID, firstName, lastName, age, emailAdd
+        SELECT userName, userSurname, userAge, userEmail
         FROM Users
         WHERE userID = ${req.params.id};
         `;
         db.query(strQry, (err, result) => {
-            if (err) throw new Error('Unable to fetch user details');
+            if (err) throw new Error(err);
             res.json({
                 status: res.statusCode,
-                result: result[0]
+                result
             });
         });
     } catch (e) {
@@ -62,15 +64,15 @@ router.get('/user/:id', (req, res) => {
     }
 });
 
-// Endpoint to add a user
-router.post('/register', (req, res) => {
+
+//endpoint for adding products
+router.post('/addProduct', (req, res) => {
     try {
-        const { firstName, lastName, age, emailAdd, pwd } = req.body;
         const strQry = `
-        INSERT INTO Users (firstName, lastName, age, emailAdd, pwd)
-        VALUES (?, ?, ?, ?, ?);
+        INSERT INTO Products (prodName, prodQuantity, prodPrice, prodURL)
+        VALUES (?, ?, ?, ?);
         `;
-        db.query(strQry, [firstName, lastName, age, emailAdd, pwd] , (err, results) => {
+        db.query(strQry, (err, results) => {
             if (err) throw new Error(err);
             res.json({
                 status: res.statusCode,
@@ -85,16 +87,41 @@ router.post('/register', (req, res) => {
     }
 });
 
-// Endpoint to update a user
-router.patch('/user/:id', (req, res) => {
+
+
+//endpoint for deleting product
+router.delete('/product/:id', (req, res) => {
     try {
-        const { firstName, lastName, age, emailAdd } = req.body;
         const strQry = `
-        UPDATE Users
-        SET firstName = ?, lastName = ?, age = ?, emailAdd = ?
-        WHERE userID = ?;
+        DELETE FROM Products
+        WHERE prodID = ${req.params.id};
         `;
-        db.query(strQry, [firstName, lastName, age, emailAdd], (err, results) => {
+        db.query(strQry,(err, results) => {
+            if (err) throw new Error(err);
+            res.json({
+                status: res.statusCode,
+                results
+            });
+        });
+    } catch (e) {
+        res.json({
+            status: 404,
+            msg: e.message
+        });
+    }
+});
+
+
+//endpoint for update
+router.patch('/product/:id', (req, res) => {
+    try {
+        
+        const strQry = `
+        UPDATE Products
+        SET prodName = , prodQuantity = ?, prodPrice = ?, prodURL=?
+        WHERE productID = ${req.params.id};
+        `;
+        db.query(strQry, (err, results) => {
             if (err) throw new Error(err);
             res.json({
                 status: res.statusCode,
